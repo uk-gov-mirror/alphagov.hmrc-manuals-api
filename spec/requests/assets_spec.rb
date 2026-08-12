@@ -229,6 +229,18 @@ describe "assets resource" do
     end
   end
 
+  describe "PUT /asset/:id" do
+    subject do
+      put_multipart "/assets/123456", {}
+    end
+
+    it "responds with ok" do
+      subject
+
+      expect(response.status).to eq(200)
+    end
+  end
+
   describe "POST /assets/:id/regenerate-access" do
     let(:asset_manager_response) do
       {
