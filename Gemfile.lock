@@ -1,3 +1,16 @@
+GIT
+  remote: https://github.com/alphagov/gds-api-adapters.git
+  revision: bf88307380a285b2aad73b0cc38ed88f63546b53
+  branch: addition-asset-manager-helpers
+  specs:
+    gds-api-adapters (103.4.0)
+      addressable
+      link_header
+      null_logger
+      plek (>= 1.9.0)
+      rack (>= 2.2.0)
+      rest-client (~> 2.0)
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -117,13 +130,6 @@ GEM
     ffi (1.17.3-aarch64-linux-gnu)
     ffi (1.17.3-arm64-darwin)
     ffi (1.17.3-x86_64-linux-gnu)
-    gds-api-adapters (103.4.0)
-      addressable
-      link_header
-      null_logger
-      plek (>= 1.9.0)
-      rack (>= 2.2.0)
-      rest-client (~> 2.0)
     gds-sso (22.3.0)
       oauth2 (~> 2.0)
       omniauth (~> 2.1)
@@ -680,7 +686,7 @@ PLATFORMS
 DEPENDENCIES
   brakeman
   ci_reporter_rspec
-  gds-api-adapters
+  gds-api-adapters!
   gds-sso
   govspeak
   govuk_app_config

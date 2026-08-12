@@ -1,5 +1,5 @@
 class AssetsController < ApplicationController
-  before_action :check_content_type_is_multipart, only: [:create]
+  before_action :check_content_type_is_multipart, only: %i[create update]
 
   def create
     asset = {
@@ -32,10 +32,37 @@ class AssetsController < ApplicationController
   end
 
   def update
-    respond_to do |format|
-      format.json do
-        render json: {}
+    asset = {
+      draft: cast_boolean(asset_params[:draft]),
+      file: asset_params[:file]&.tempfile,
+      replacement_id: asset_params[:replacement_id],
+    }.compact
+
+    asset.merge!(asset_auth_params) if asset[:draft]
+
+    begin
+      asset_manager_response = Services.asset_manager.update_asset(params[:id], asset)
+      output = if asset[:draft]
+                 formatted_asset_manager_response_for_draft(asset_manager_response, asset)
+               else
+                 formatted_asset_manager_response(asset_manager_response)
+               end
+
+      respond_to do |format|
+        format.json do
+          render status: :ok, json: output
+        end
       end
+    rescue ActionController::UnknownFormat
+      error :not_acceptable, "Invalid Accept header"
+    rescue GdsApi::HTTPPayloadTooLarge
+      error :content_too_large, "Content exceeds maximum permitted size"
+    rescue GdsApi::HTTPUnprocessableEntity
+      error :unprocessable_entity, "Asset update failed"
+    rescue GdsApi::HTTPNotFound
+      error :not_found, "Asset does not exist"
+    rescue GdsApi::HTTPForbidden
+      error :forbidden, "Access to asset is forbidden"
     end
   end
 
@@ -68,10 +95,15 @@ private
     end
   end
 
+  def cast_boolean(value)
+    ActiveModel::Type::Boolean.new.cast(value)
+  end
+
   def asset_params
     params.require(:asset).permit(
       :file,
       :draft,
+      :replacement_id,
     )
   end
 
