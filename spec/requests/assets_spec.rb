@@ -6,6 +6,21 @@ describe "assets resource" do
   include GdsApi::TestHelpers::AssetManager
 
   let(:parsed_response) { JSON.parse(response.body).deep_symbolize_keys }
+  shared_examples "includes a draft response token" do
+    it "generates and includes a token in the file_url" do
+      expected_decoded_token = {
+        "exp" => Time.zone.local(2026, 1, 31, 0, 0, 1).to_i,
+        "iat" => Time.zone.now.to_i,
+        "sub" => "token",
+      }
+
+      expect(decoded_token_payload_from_url(parsed_response[:file_url])).to eq(expected_decoded_token)
+    end
+
+    it "includes a preview expiry date 30 days in the future" do
+      expect(parsed_response).to include(preview_expiry: Time.zone.local(2026, 1, 31, 0, 0, 1).iso8601)
+    end
+  end
 
   shared_examples "passes request params to Asset Manager" do
     it "preserves the request params" do
@@ -144,7 +159,7 @@ describe "assets resource" do
 
       context "when the request marks the asset as draft" do
         before do
-          allow(SecureRandom).to receive(:uuid).and_return("some-token")
+          allow(SecureRandom).to receive(:uuid).and_return("token")
           travel_to Time.zone.local(2026, 1, 1, 0, 0, 1)
 
           subject
@@ -159,19 +174,7 @@ describe "assets resource" do
           expect(parsed_response).to include(asset_id: "45678")
         end
 
-        it "generates and includes a token in the file_url" do
-          expected_decoded_token = {
-            "exp" => Time.zone.local(2026, 1, 31, 0, 0, 1).to_i,
-            "iat" => Time.zone.now.to_i,
-            "sub" => "some-token",
-          }
-
-          expect(decoded_token_payload_from_url(parsed_response[:file_url])).to eq(expected_decoded_token)
-        end
-
-        it "includes a preview expiry date 30 days in the future" do
-          expect(parsed_response).to include(preview_expiry: Time.zone.local(2026, 1, 31, 0, 0, 1).iso8601)
-        end
+        it_behaves_like "includes a draft response token"
       end
     end
 
@@ -314,7 +317,14 @@ describe "assets resource" do
 
         context "when the asset is draft" do
           before do
-            allow(SecureRandom).to receive(:uuid).and_return("some-token")
+            allow(SecureRandom).to receive(:uuid).and_return("token")
+            travel_to Time.zone.local(2026, 1, 1, 0, 0, 1)
+
+            subject
+          end
+
+          before do
+            subject
           end
 
           it "responds with 200 OK" do
@@ -326,31 +336,9 @@ describe "assets resource" do
             expect(parsed_response).to include(asset_id: "123456789")
           end
 
-          it "generates and includes a token in the file_url" do
-            travel_to Time.zone.local(2026, 1, 1, 0, 0, 1)
-
-            subject
-
-            parsed_response = JSON.parse(response.body).deep_symbolize_keys
-
-            expected_decoded_token = {
-              "exp" => Time.zone.local(2026, 1, 31, 0, 0, 1).to_i,
-              "iat" => Time.zone.now.to_i,
-              "sub" => "some-token",
-            }
-
-            expect(decoded_token_payload_from_url(parsed_response[:file_url])).to eq(expected_decoded_token)
-          end
-
-          it "includes a preview expiry date 30 days in the future" do
-            travel_to Time.zone.local(2026, 1, 1, 0, 0, 1)
-            subject
-
-            parsed_response = JSON.parse(response.body).deep_symbolize_keys
-            expect(parsed_response).to include(preview_expiry: Time.zone.local(2026, 1, 31, 0, 0, 1).iso8601)
-          end
-
           it_behaves_like "passes request params to Asset Manager"
+
+          it_behaves_like "includes a draft response token"
         end
       end
 
@@ -489,7 +477,7 @@ describe "assets resource" do
     context "when Asset Manager responds with ok" do
       before do
         allow(Services.asset_manager).to receive(:update_asset).and_return(asset_manager_response.deep_stringify_keys)
-        allow(SecureRandom).to receive(:uuid).and_return("new-token")
+        allow(SecureRandom).to receive(:uuid).and_return("token")
         travel_to Time.zone.local(2026, 1, 1, 0, 0, 1)
 
         subject
@@ -503,19 +491,7 @@ describe "assets resource" do
         expect(parsed_response).to include(asset_manager_response.except(:file_url))
       end
 
-      it "generates and includes a token in the file_url" do
-        expected_decoded_token = {
-          "exp" => Time.zone.local(2026, 1, 31, 0, 0, 1).to_i,
-          "iat" => Time.zone.now.to_i,
-          "sub" => "new-token",
-        }
-
-        expect(decoded_token_payload_from_url(parsed_response[:file_url])).to eq(expected_decoded_token)
-      end
-
-      it "includes a preview expiry date 30 days in the future" do
-        expect(parsed_response).to include(preview_expiry: Time.zone.local(2026, 1, 31, 0, 0, 1).iso8601)
-      end
+      it_behaves_like "includes a draft response token"
     end
 
     context "when Asset Manager responds with GdsApi::HTTPNotFound" do
