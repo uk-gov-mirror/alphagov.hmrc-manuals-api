@@ -2,7 +2,7 @@ source "https://rubygems.org"
 
 gem "rails", "8.1.3.1"
 
-gem "gds-api-adapters"
+gem "gds-api-adapters", git: "https://github.com/alphagov/gds-api-adapters.git", branch: "addition-asset-manager-helpers"
 gem "gds-sso"
 gem "govspeak"
 gem "govuk_app_config"

@@ -1,7 +1,9 @@
 require "rails_helper"
+require "gds_api/test_helpers/asset_manager"
 
 describe "assets resource" do
   include ActiveSupport::Testing::TimeHelpers
+  include GdsApi::TestHelpers::AssetManager
 
   let(:parsed_response) { JSON.parse(response.body).deep_symbolize_keys }
 
@@ -225,6 +227,71 @@ describe "assets resource" do
 
       it "responds with 415 Unsupported Media Type" do
         expect(response).to have_http_status(:unsupported_media_type)
+      end
+    end
+  end
+
+  describe "DELETE /assets/:id" do
+    let(:asset_manager_response) do
+      {
+        _response_info: {
+          status: "ok",
+        },
+        content_type: "text",
+        deleted: "true",
+        draft: "false",
+        file_url: "http://asset-manager.dev.gov.uk/media/1234567/asset.txt",
+        id: "http://asset-manager/assets/1234567",
+        name: "asset.txt",
+        size: "12",
+        state: "clean",
+      }
+    end
+
+    subject do
+      delete "/assets/1234567"
+    end
+
+    context "when Asset Manager responds with ok" do
+      before do
+        stub_asset_manager_deletes_any_asset(asset_manager_response)
+
+        subject
+      end
+
+      it "responds with 200 OK" do
+        expect(response).to have_http_status(:ok)
+      end
+
+      it "responds with data from Asset Manager" do
+        expect(parsed_response).to include(asset_manager_response)
+        expect(parsed_response).to include(asset_id: "1234567")
+      end
+    end
+
+    context "when Asset Manager responds with GdsApi::HTTPNotFound" do
+      before do
+        stub_asset_manager_delete_asset_missing("1234567")
+
+        subject
+      end
+
+      it "responds with 404 Not Found" do
+        expect(response).to have_http_status(:not_found)
+        expect(response.body).to include("Asset not found")
+      end
+    end
+
+    context "when Asset Manager responds with GdsApi::HTTPForbidden" do
+      before do
+        stub_asset_manager_responds_forbidden("1234567")
+
+        subject
+      end
+
+      it "responds with 403 Forbidden" do
+        expect(response).to have_http_status(:forbidden)
+        expect(response.body).to include("Access to asset is forbidden")
       end
     end
   end
