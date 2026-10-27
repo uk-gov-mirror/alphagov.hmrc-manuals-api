@@ -7,7 +7,7 @@ describe "assets resource" do
 
   let(:asset_id) { SecureRandom.hex }
   let(:additional_attributes) { {} }
-  let(:asset_manager_response) do
+  let(:stubbed_asset_data) do
     {
       _response_info: {
         status: "ok",
@@ -111,7 +111,7 @@ describe "assets resource" do
   end
 
   describe "GET /assets/:id" do
-    let(:stub_asset_manager_request) { stub_asset_manager_request_to_get_asset(asset_id, asset_manager_response.deep_stringify_keys) }
+    let(:stub_asset_manager_request) { stub_asset_manager_request_to_get_asset(asset_id, stubbed_asset_data.deep_stringify_keys) }
 
     subject do
       get "/assets/#{asset_id}"
@@ -132,7 +132,7 @@ describe "assets resource" do
       end
 
       it "responds with data from Asset Manager" do
-        expect(parsed_response).to include(asset_manager_response)
+        expect(parsed_response).to include(stubbed_asset_data)
         expect(parsed_response).to include(asset_id:)
       end
     end
@@ -159,8 +159,8 @@ describe "assets resource" do
   describe "POST /assets" do
     let(:draft) { true }
     let(:request_params) { { asset: { file: fixture_file_upload("asset.txt", "text/plain") } } }
-    let(:file_url) { asset_manager_response[:file_url] }
-    let(:stub_asset_manager_request) { stub_asset_manager_create_asset(file_url, asset_manager_response) }
+    let(:file_url) { stubbed_asset_data[:file_url] }
+    let(:stub_asset_manager_request) { stub_asset_manager_create_asset(file_url, stubbed_asset_data) }
 
     subject do
       post_multipart "/assets", request_params
@@ -202,7 +202,7 @@ describe "assets resource" do
         end
 
         it "responds with data from Asset Manager" do
-          expect(parsed_response).to include(asset_manager_response.except(:file_url))
+          expect(parsed_response).to include(stubbed_asset_data.except(:file_url))
         end
 
         it "includes the file_url" do
@@ -253,7 +253,7 @@ describe "assets resource" do
           end
 
           it "responds with data from Asset Manager" do
-            expect(parsed_response).to include(asset_manager_response)
+            expect(parsed_response).to include(stubbed_asset_data)
           end
 
           it "includes the asset_id" do
@@ -300,7 +300,7 @@ describe "assets resource" do
           end
 
           it "responds with data from Asset Manager" do
-            expect(parsed_response).to include(asset_manager_response.except(:file_url))
+            expect(parsed_response).to include(stubbed_asset_data.except(:file_url))
           end
 
           it "includes the file_url" do
@@ -406,7 +406,7 @@ describe "assets resource" do
   end
 
   describe "DELETE /assets/:id" do
-    let(:stub_asset_manager_request) { stub_asset_manager_delete_asset(asset_id, asset_manager_response.deep_stringify_keys) }
+    let(:stub_asset_manager_request) { stub_asset_manager_delete_asset(asset_id, stubbed_asset_data.deep_stringify_keys) }
 
     subject do
       delete "/assets/#{asset_id}"
@@ -427,7 +427,7 @@ describe "assets resource" do
       end
 
       it "responds with data from Asset Manager" do
-        expect(parsed_response).to include(asset_manager_response)
+        expect(parsed_response).to include(stubbed_asset_data)
         expect(parsed_response).to include(asset_id:)
       end
     end
@@ -453,7 +453,7 @@ describe "assets resource" do
 
   describe "PUT /assets/:id" do
     let(:request_params) { { asset: { file: fixture_file_upload("asset.txt", "text/plain") } } }
-    let(:stub_asset_manager_request) { stub_asset_manager_update_asset(asset_id, asset_manager_response.deep_stringify_keys) }
+    let(:stub_asset_manager_request) { stub_asset_manager_update_asset(asset_id, stubbed_asset_data.deep_stringify_keys) }
     let(:stub_asset_manager_get_request) { stub_asset_manager_request_to_get_asset(asset_id, { "draft": "false" }) }
 
     subject do
@@ -507,7 +507,7 @@ describe "assets resource" do
           end
 
           it "responds with data from Asset Manager" do
-            expect(parsed_response).to include(asset_manager_response)
+            expect(parsed_response).to include(stubbed_asset_data)
             expect(parsed_response).to include(asset_id:)
           end
 
@@ -536,7 +536,7 @@ describe "assets resource" do
           end
 
           it "responds with data from Asset Manager" do
-            expect(parsed_response).to include(asset_manager_response.except(:file_url))
+            expect(parsed_response).to include(stubbed_asset_data.except(:file_url))
             expect(parsed_response).to include(asset_id:)
           end
 
@@ -565,7 +565,7 @@ describe "assets resource" do
           end
 
           it "responds with data from Asset Manager" do
-            expect(parsed_response).to include(asset_manager_response.except(:file_url))
+            expect(parsed_response).to include(stubbed_asset_data.except(:file_url))
             expect(parsed_response).to include(asset_id:)
           end
 
@@ -587,7 +587,7 @@ describe "assets resource" do
           end
 
           it "responds with data from Asset Manager" do
-            expect(parsed_response).to include(asset_manager_response)
+            expect(parsed_response).to include(stubbed_asset_data)
             expect(parsed_response).to include(asset_id:)
           end
 
@@ -697,7 +697,7 @@ describe "assets resource" do
   end
 
   describe "POST /assets/:id/regenerate-access" do
-    let(:stub_asset_manager_request) { stub_asset_manager_update_asset(asset_id, asset_manager_response.deep_stringify_keys) }
+    let(:stub_asset_manager_request) { stub_asset_manager_update_asset(asset_id, stubbed_asset_data.deep_stringify_keys) }
 
     subject do
       post "/assets/#{asset_id}/regenerate-access"
@@ -721,7 +721,7 @@ describe "assets resource" do
       end
 
       it "responds with data from Asset Manager" do
-        expect(parsed_response).to include(asset_manager_response.except(:file_url))
+        expect(parsed_response).to include(stubbed_asset_data.except(:file_url))
       end
 
       it_behaves_like "includes a draft response token"
@@ -747,7 +747,7 @@ describe "assets resource" do
   end
 
   describe "POST /assets/:id/restore" do
-    let(:stub_asset_manager_request) { stub_asset_manager_restore_asset(asset_id, asset_manager_response.deep_stringify_keys) }
+    let(:stub_asset_manager_request) { stub_asset_manager_restore_asset(asset_id, stubbed_asset_data.deep_stringify_keys) }
 
     subject do
       post "/assets/#{asset_id}/restore"
@@ -769,7 +769,7 @@ describe "assets resource" do
       end
 
       it "responds with data from Asset Manager" do
-        expect(parsed_response).to include(asset_manager_response)
+        expect(parsed_response).to include(stubbed_asset_data)
         expect(parsed_response).to include(asset_id:)
       end
     end
