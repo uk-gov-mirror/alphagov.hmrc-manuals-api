@@ -160,7 +160,7 @@ describe "assets resource" do
     let(:draft) { true }
     let(:request_params) { { asset: { file: fixture_file_upload("asset.txt", "text/plain") } } }
     let(:file_url) { stubbed_asset_data[:file_url] }
-    let(:stub_asset_manager_request) { stub_asset_manager_create_asset(file_url, stubbed_asset_data) }
+    let(:stub_asset_manager_request) { stub_asset_manager_create_asset(file_url, stubbed_asset_data.deep_stringify_keys) }
 
     subject do
       post_multipart "/assets", request_params
